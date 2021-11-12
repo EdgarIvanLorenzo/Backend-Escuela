@@ -1,0 +1,6 @@
+{
+  "Personas": [
+    {"nombre": "Edgar","Edad": 21},
+    {"nombre": "Jose","Edad": 29}
+  ]
+}
