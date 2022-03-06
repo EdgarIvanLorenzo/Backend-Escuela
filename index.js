@@ -52,7 +52,7 @@ app.get("/Allmaterias",(d,r)=>{
 })
 app.post("/Addmateria",(d,r)=>{
     const datos=d.body;
-    conexion.query(`insert into Materia(Nombre) values('${datos.nombre}')`,(error,filas)=>{
+    conexion.query(`insert into Materia(Nombre) select '${datos.nombre}' where not exists(select 1 from Materia where Nombre='${datos.nombre}')`,(error,filas)=>{
         if(error) r.send(error);
         r.status(200).send(filas);
     })
@@ -85,7 +85,7 @@ app.get("/Allgrupos",(d,r)=>{
 })
 app.post("/Addgrupo",(d,r)=>{
     const datos=d.body;
-    conexion.query(`insert into Grupo(Grado,Grupo) values('${datos.grado}','${datos.grupo}')`,(error,filas)=>{
+    conexion.query(`insert into Grupo(Grado,Grupo) select '${datos.grado}','${datos.grupo}' where not exists(select 1 from Grupo where Grado='${datos.grado}'and Grupo='${datos.grupo}')`,(error,filas)=>{
         if(error) r.send(error);
         r.status(200).send(filas);
     })
@@ -125,8 +125,9 @@ app.get("/Allalumnos",(d,r)=>{
 })
 app.post("/Addalumno",(d,r)=>{
     const datos=d.body;
-    conexion.query(`insert into Alumno(Nombre,Apellidos,Genero,Telefono,Direccion,idGrupo) 
-                    values('${datos.nombre}','${datos.apellidos}','${datos.genero}','${datos.telefono}','${datos.direccion}',${datos.idGrupo})`,(error,filas)=>{
+  
+    conexion.query( `INSERT INTO Alumno(Nombre, Apellidos, Genero,Telefono,Direccion,idGrupo)  
+    Values('${datos.nombre}','${datos.apellidos}','${datos.genero}','${datos.telefono}','${datos.direccion}',${datos.idGrupo})`,(error,filas)=>{
         if(error) r.send(error);
         r.status(200).send(filas);
     })
@@ -152,12 +153,13 @@ app.delete("/Deletealumno/:id",(d,r)=>{
 app.post("/Cargamaterias",(d,r)=>{
     const datos=d.body;
     let contador=0;
-    for(let materia of datos.materia){
-        conexion.query(`insert into CargaMateria(idGrupo,idMateria) values(${datos.grupo},${materia})`,(error,filas)=>{
-            if(contador===0){
+    console.log(datos);
+    for (let materia of datos.materia){
+        conexion.query(`insert into CargaMateria(idGrupo,idMateria) select ${datos.grupo},${materia} where not exists(select 1 from CargaMateria where idGrupo=${datos.grupo} and idMateria=${materia})`,(error,filas)=>{
+            if(contador==0){
                 r.send(filas);
             }
-            contador+=1;
+            contador++;
         })
     }
 })
@@ -165,7 +167,7 @@ app.post("/Cargamaterias",(d,r)=>{
 //Todo ultima vista
 app.get("/Lista/:id",(d,r)=>{
     const grupo=d.params.id;
-    conexion.query(`select a.idAlumno as 'id', a.Nombre as 'Nombre', a.Apellidos as 'Apellidos',  a.Telefono as 'Telefono', a.Direccion as 'Direccion' from Alumno a join Grupo g on a.idGrupo=g.idGrupo where g.idGrupo=${grupo}`,(error,filas)=>{
+    conexion.query(`select a.idAlumno as 'id', a.Nombre as 'Nombre', a.Apellidos as 'Apellidos',  a.Telefono as 'Telefono', a.Direccion as 'Direccion' , a.Genero as 'Genero',g.Grado as 'Grado',g.Grupo as 'Grupo', g.idGrupo as 'idGrupo' from Alumno a join Grupo g on a.idGrupo=g.idGrupo where g.idGrupo=${grupo}`,(error,filas)=>{
         if(error) r.send(error);
         r.send(filas);
     })
